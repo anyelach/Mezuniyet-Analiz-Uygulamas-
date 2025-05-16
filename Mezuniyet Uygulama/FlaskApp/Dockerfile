@@ -15,4 +15,5 @@ RUN pip install --upgrade pip setuptools wheel \
 COPY . .
 
 # Flask uygulamasını çalıştır
-CMD ["python", "app.py"]
+CMD ["python", "FlaskApp/app.py"]
+
