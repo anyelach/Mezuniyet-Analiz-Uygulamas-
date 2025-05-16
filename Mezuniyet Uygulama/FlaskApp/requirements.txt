@@ -244,8 +244,8 @@ sympy
 tables
 tabulate
 tenacity
-tensorboard==2.18.0
-tensorflow-intel==2.18.0
+tensorboard==2.10.0
+tensorflow-intel==2.10.0
 termcolor==2.5.0
 threadpoolctl
 tokenizers==0.21.1
