@@ -166,7 +166,7 @@ matplotlib-inline
 mccabe
 mdit-py-plugins
 mdurl
-menuinst
+
 mistune
 mkl-service==2.4.0
 mkl_fft
