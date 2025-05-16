@@ -151,7 +151,7 @@ lazy_loader
 lckr_jupyterlab_variableinspector
 libarchive-c
 libclang==18.1.1
-libmambapy
+
 linkify-it-py
 llvmlite
 lmdb
