@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ders Bilgileri</title>
+</head>
+<body>
+    <h1>Ders Bilgileri</h1>
+    <table border="1">
+        <tr>
+            <th>Ders Kodu</th>
+            <th>Ders İsmi</th>
+            <th>Harf Notu</th>
+        </tr>
+        {% for ders in dersler %}
+        <tr>
+            <td>{{ ders[0] }}</td>
+            <td>{{ ders[1] }}</td>
+            <td>{{ ders[2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

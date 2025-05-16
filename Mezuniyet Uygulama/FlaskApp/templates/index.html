@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ders Bilgileri ve Mezuniyet Durumu</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Ders Bilgileri</h1>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="pdf">PDF dosyanızı seçin:</label>
+                <input type="file" name="pdf" id="pdf" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Yükle</button>
+        </form>
+
+        <h2 class="mt-5">Ders Bilgileri</h2>
+        {% if dersler %}
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Ders Kodu</th>
+                        <th>Ders İsmi</th>
+                        <th>Kredi</th>
+                        <th>AKTS</th>
+                        <th>Harf Notu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ders in dersler %}
+                    <tr>
+                        <td>{{ ders[0] }}</td>
+                        <td>{{ ders[1] }}</td>
+                        <td>{{ ders[2] }}</td>
+                        <td>{{ ders[3] }}</td>
+                        <td>{{ ders[4] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h3 class="mt-5">Mezuniyet Durumu</h3>
+            <p class="alert {% if 'Mezuniyet' in mezuniyet_durumu %}alert-success{% else %}alert-danger{% endif %}">
+                {{ mezuniyet_durumu }}
+            </p>
+        {% else %}
+            <p class="text-center text-muted">Henüz ders bilgisi yok.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
