@@ -82,7 +82,7 @@ def mezuniyet_hesapla(dersler):
     "BM485", "BM486", "BM487", "BM488", "BM489", "BM491", "BM492", "BM496", "MTH401"
 ]
  
-    ]
+    
     secmeli_dersler = [d for d in dersler if d[0] in secmeli_ders_kodlari]
 
     if len(secmeli_dersler) < 10:
