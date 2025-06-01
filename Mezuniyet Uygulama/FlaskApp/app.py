@@ -85,6 +85,7 @@ def extract_ders_bilgileri(pdf_path):
                         ders_ismi = cid_temizle(ders_ismi)
 
                         dersler.append((ders_kodu, ders_ismi, kredi, akts, harf_notu))
+                        print(f"{ders_kodu} | {ders_ismi} | {kredi} | {akts} | {harf_notu}")
 
 
     return dersler
