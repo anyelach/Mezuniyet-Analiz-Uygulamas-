@@ -44,17 +44,15 @@ def allowed_file(filename):
 def extract_ders_bilgileri(pdf_path):
     """
     PDF'den ders bilgilerini (kod, ad, kredi, AKTS, harf notu) çıkarır.
-    Bu fonksiyon artık genel AKTS toplamını hesaplamak için kullanılmayacak,
-    sadece ders bazında kontroller için kullanılacak.
     """
     dersler = []
     with pdfplumber.open(pdf_path) as pdf:
-        # Ders satırlarını yakalamak için geliştirilmiş regex.
-        # Satır başında ders kodu, ardından ders adı, kredi, AKTS ve harf notu.
-        # Regex, satırın başından (^), ders kodundan (AIB\d{3}|BM\d{3}|...)
-        # ders adına (Türkçe karakterler, boşluklar, tireler dahil, non-greedy),
-        # kredi ve AKTS değerlerine (sayı.ondalık),
-        # ve harf notuna (iki büyük harf veya YT/YZ) kadar eşleşir ve satır sonunda ($) biter.
+        # Regex'i PDF'deki formatınıza göre daha sağlam hale getirelim:
+        # Ders kodu, ardından ders adı (boşluklar, Türkçe karakterler, tireler, noktalar ve yeni satırlar dahil)
+        # sonra Kredi, AKTS ve Harf Notu.
+        # Her bir grup arasında boşluklar (\s+) veya yeni satır (\n) olabilir.
+        # Ders adındaki non-greedy (.*?) kullanıldı.
+        # Harf notu için iki harfli kodlar veya YT/YZ.
         pattern = r"^(AIB\d{3}|BM\d{3}|FIZ\d{3}|ING\d{3}|MAT\d{3}|TDB\d{3}|KRP\d{3}|MS\d{3}|US\d{3}|SE\d{3})\s+([A-Za-zÇŞĞÜÖİçşğüöı\s\-\.]+?)\s+([\d.]+)\s+([\d.]+)\s+([A-F]{2}|YT|YZ)$"
 
         for page in pdf.pages:
@@ -62,7 +60,7 @@ def extract_ders_bilgileri(pdf_path):
             if text:
                 lines = text.split("\n")
                 for line in lines:
-                    cleaned_line = cid_temizle(line) # cid hatalarını temizle
+                    cleaned_line = cid_temizle(line.strip()) # cid hatalarını temizle ve baştaki/sondaki boşlukları kaldır
 
                     match = re.search(pattern, cleaned_line)
                     if match:
@@ -75,32 +73,43 @@ def extract_ders_bilgileri(pdf_path):
                         # Sayısal değerlerin geçerliliğini kontrol et
                         if kredi.replace('.', '').isdigit() and akts.replace('.', '').isdigit():
                             dersler.append((ders_kodu, ders_ismi, kredi, akts, harf_notu))
+                        # else:
+                        #     print(f"DEBUG: Hatalı sayısal değer tespit edildi: Kredi='{kredi}', AKTS='{akts}' - Satır: {cleaned_line}")
+                    # else:
+                    #     print(f"DEBUG: Ders regex eşleşmedi: {cleaned_line}")
     return dersler
 
 def extract_overall_akts(pdf_path):
     """
     PDF'den en son "Genel" AKTS değerini çıkarır.
+    Transkript çıktınıza göre regex güncellendi.
     """
     overall_akts = None
     with pdfplumber.open(pdf_path) as pdf:
         full_text = ""
         for page in pdf.pages:
-            full_text += page.extract_text() + "\n" # Tüm sayfaları birleştir [cite: 1]
+            full_text += page.extract_text() + "\n" # Tüm sayfaları birleştir
 
         cleaned_full_text = cid_temizle(full_text)
 
-        # "Genel" kelimesini içeren satırları bul ve AKTS değerini çek.
-        # PDF'deki format: "Genel", "144.0", "212.0", "622.00", "2.99"
-        # Bu regex, "Genel" kelimesinden sonraki tırnak içindeki ikinci ondalık sayıyı yakalar.
-        # re.findall ile tüm eşleşmeleri bulup en sonuncuyu alacağız.
-        pattern = r"Genel.*?\"([\d.]+)\"\s*,\s*\"([\d.]+)\""
-        matches = re.findall(pattern, cleaned_full_text) # [cite: 1]
+        # Transkript çıktınızdaki Genel satırının formatı şu şekilde:
+        # "Genel\n","144.0\n","212.0\n","622.00\n","2.99\n" (veya benzeri)
+        # Regex'i bu formatı yakalamak için güncelledik.
+        # Tırnakları, virgülleri, yeni satır karakterlerini ve potansiyel boşlukları hesaba katıyoruz.
+        # Amacımız "Genel" ifadesinden sonra gelen ikinci sayısal değeri yakalamak.
+        # Kaynak 16'daki "Genel","144.0","212.0","622.00","2.99" satırını hedefliyor.
+        # Bu pattern, "Genel" ifadesinden sonraki tırnak içinde bulunan tüm sayısal değerleri yakalar.
+        # İkinci grup AKTS değeridir.
+        pattern = r"Genel\"\s*,\s*\"([\d.]+)\"\s*,\s*\"([\d.]+)\"\s*,\s*\"([\d.]+)\"\s*,\s*\"([\d.]+)\""
+        matches = re.findall(pattern, cleaned_full_text)
 
         if matches:
-            # En son eşleşen "Genel" satırındaki ikinci değeri (AKTS) al [cite: 1]
-            last_match = matches[-1] # [cite: 1]
+            # En son eşleşen "Genel" satırındaki ikinci değeri (AKTS) al
+            last_match = matches[-1]
             try:
-                overall_akts = float(last_match[1]) # İkinci grup AKTS değeridir [cite: 1]
+                # last_match tuple'ı (144.0, 212.0, 622.00, 2.99) gibi olacak.
+                # Bizim ihtiyacımız olan 212.0, yani 1. index (0'dan başlıyor)
+                overall_akts = float(last_match[1])
             except ValueError:
                 overall_akts = None # Dönüşüm hatası olursa None döndür
 
@@ -157,14 +166,13 @@ def mezuniyet_hesapla(dersler, overall_akts_from_pdf=None):
     if not yaz_staji_dersleri:
         hatalar.append("Yaz stajı (BM399 veya BM499) tamamlanmamış.")
     else:
-        # BM499'un YZ notuyla geçip geçmediğini kontrol et
+        # Transkriptinizde BM499 notu "YZ" olarak görünüyor. [cite: 15]
         yetersiz_staj_ii = any(d[0] == "BM499" and d[4] == "YZ" for d in yaz_staji_dersleri)
         if yetersiz_staj_ii:
             hatalar.append("Yaz stajı II (BM499) notu yetersiz (YZ).")
         else:
-            # Eğer BM399 veya BM499'dan herhangi biri YT değilse ve BM499 YZ değilse,
-            # stajın tamamlanmadığı anlamına gelir.
-            if not any(d[4] == "YT" or (d[4] != "YZ" and d[0] == "BM499") for d in yaz_staji_dersleri):
+            # BM399 veya BM499'dan herhangi biri YT veya başka geçer bir notla geçmeli
+            if not any(d[4] == "YT" or (d[4] not in {"FF", "FD", "YZ"} and d[0] == "BM499") for d in yaz_staji_dersleri):
                 hatalar.append("Yaz stajı (BM399 veya BM499) tamamlanmamış veya notu yetersiz.")
 
 
@@ -204,12 +212,11 @@ def upload_pdf():
         dersler = extract_ders_bilgileri(pdf_path) # Ders bazında kontroller için hala gerekli
         overall_akts_from_pdf = extract_overall_akts(pdf_path) # Genel AKTS'yi çek
 
-        if dersler:
-            # Mezuniyet hesaplamasını, PDF'den çekilen genel AKTS ile yap
+        if dersler or overall_akts_from_pdf is not None: # En az bir ders veya genel AKTS çekilebildiyse devam et
             mezuniyet_durumu = mezuniyet_hesapla(dersler, overall_akts_from_pdf)
             return render_template("index.html", mezuniyet_durumu=mezuniyet_durumu)
         else:
-            return "Ders bilgileri bulunamadı veya işlenemedi.", 400
+            return "PDF'den ders bilgileri veya genel AKTS bulunamadı. Lütfen dosyanızın metin içerdiğinden ve formatının desteklendiğinden emin olun.", 400
 
     return "Geçersiz dosya türü.", 400
 
