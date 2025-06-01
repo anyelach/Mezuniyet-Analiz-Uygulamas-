@@ -85,10 +85,19 @@ def mezuniyet_hesapla(dersler):
     if len(ms_dersler) < 1:
         hatalar.append("En az 1 fakülte seçmeli (MS kodlu) ders alınmalıdır.")
 
-    secmeli_ders_kodlari = [ ... ]  # (senin uzun seçmeli dersi listesi burada aynı kalsın)
+    secmeli_ders_kodlari = [
+        "BM480", "BM455", "BM437", "BM471", "BM490", "BM495", "BM477", "BM493",
+        "BM494", "BM442", "BM430", "BM469", "BM424", "BM451", "BM465", "BM436",
+        "BM479", "BM443", "BM445", "BM470", "BM473", "BM420", "BM421", "BM422",
+        "BM423", "BM425", "BM426", "BM427", "BM428", "BM429", "BM431", "BM432",
+        "BM433", "BM434", "BM435", "BM438", "BM439", "BM440", "BM441", "BM444",
+        "BM447", "BM449", "BM453", "BM457", "BM459", "BM461", "BM463", "BM467",
+        "BM472", "BM474", "BM475", "BM476", "BM478", "BM481", "BM482", "BM483",
+        "BM485", "BM486", "BM487", "BM488", "BM489", "BM491", "BM492", "BM496", "MTH401"
+    ]
     secmeli_dersler = [d for d in unique_dersler.values() if d[0] in secmeli_ders_kodlari]
     if len(secmeli_dersler) < 10:
-        hatalar.append(f"Toplamda en az 10 seçmeli (BM kodlu) ders alınmalı. Şu an {len(secmeli_dersler)} tane var.")
+        hatalar.append(f"Toplamda en az 10 seçmeli (BM kodlu) ders alınmalı. Şu an {len(secmeli_dersler)} adet var.")
 
     yaz_staji_dersleri = [d for d in unique_dersler.values() if d[0] in ("BM399", "BM499")]
     if not yaz_staji_dersleri:
