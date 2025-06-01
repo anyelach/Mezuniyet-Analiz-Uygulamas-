@@ -3,55 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ders Bilgileri ve Mezuniyet Durumu</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Mezuniyet Durumu Kontrolü</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1 class="text-center">Ders Bilgileri</h1>
-        <form action="/upload" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="pdf">PDF dosyanızı seçin:</label>
-                <input type="file" name="pdf" id="pdf" class="form-control" required>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Mezuniyet Durumu Kontrolü</h1>
+
+        <form action="/upload" method="post" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label for="pdf" class="block text-sm font-medium text-gray-700 mb-1">Transkript PDF'inizi Yükleyin:</label>
+                <input type="file" name="pdf" id="pdf" accept=".pdf" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Yükle</button>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                Kontrol Et
+            </button>
         </form>
 
-        <h2 class="mt-5">Ders Bilgileri</h2>
-        {% if dersler %}
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Ders Kodu</th>
-                        <th>Ders İsmi</th>
-                        <th>Kredi</th>
-                        <th>AKTS</th>
-                        <th>Harf Notu</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ders in dersler %}
-                    <tr>
-                        <td>{{ ders[0] }}</td>
-                        <td>{{ ders[1] }}</td>
-                        <td>{{ ders[2] }}</td>
-                        <td>{{ ders[3] }}</td>
-                        <td>{{ ders[4] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <h3 class="mt-5">Mezuniyet Durumu</h3>
-            <p class="alert {% if 'Mezuniyet' in mezuniyet_durumu %}alert-success{% else %}alert-danger{% endif %}">
-                {{ mezuniyet_durumu }}
-            </p>
-        {% else %}
-            <p class="text-center text-muted">Henüz ders bilgisi yok.</p>
+        {% if mezuniyet_durumu %}
+            <div class="mt-6 p-4 rounded-lg {% if '✅' in mezuniyet_durumu %}bg-green-50 text-green-800{% else %}bg-red-50 text-red-800{% endif %} border {% if '✅' in mezuniyet_durumu %}border-green-200{% else %}border-red-200{% endif %}">
+                <h2 class="text-lg font-semibold mb-2">Mezuniyet Durumu:</h2>
+                <p class="whitespace-pre-line">{{ mezuniyet_durumu }}</p>
+            </div>
         {% endif %}
     </div>
 </body>
