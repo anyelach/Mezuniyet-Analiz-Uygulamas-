@@ -62,7 +62,8 @@ def extract_ders_bilgileri(pdf_path):
         dersler = []
 
 
-        pattern = r"(AIB\d{3}|BM\d{3}|FIZ\d{3}|ING\d{3}|MAT\d{3}|TDB\d{3}|KRP\d{3}|MS\d{3}|US\d{3}|SE\d{3})\s+(.+?)\s+(\d+\.\d{1,2})\s+(\d+\.\d{1,2})\s+(YT|YZ|[A-F]{2})"
+        pattern = r"\b(AIB\d{3}|BM\d{3}|FIZ\d{3}|ING\d{3}|MAT\d{3}|TDB\d{3}|KRP\d{3}|MS\d{3}|US\d{3}|SE\d{3})\b\s+(.*?)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(YT|YZ|[A-F]{2})"
+
 
 
         for page in pdf.pages:
