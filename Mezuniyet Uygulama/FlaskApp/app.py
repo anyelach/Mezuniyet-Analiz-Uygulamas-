@@ -56,39 +56,63 @@ def allowed_file(filename):
 
 
 def extract_ders_bilgileri(pdf_path):
-
     with pdfplumber.open(pdf_path) as pdf:
-
-        dersler = []
-
-
-        pattern = r"\b(AIB\d{3}|BM\d{3}|FIZ\d{3}|ING\d{3}|MAT\d{3}|TDB\d{3}|KRP\d{3}|MS\d{3}|US\d{3}|SE\d{3})\b\s+(.*?)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(YT|YZ|[A-F]{2})"
-
-
-
+        tum_metin = ""
         for page in pdf.pages:
-
-            text = page.extract_text()
-
-            if text:
-
-                lines = text.split("\n")
-
-                for line in lines:
-
-                    matches = re.findall(pattern, line)
-
-                    for match in matches:
-
-                        ders_kodu, ders_ismi, kredi, akts, harf_notu = match
-
-                        ders_ismi = cid_temizle(ders_ismi)
-
-                        dersler.append((ders_kodu, ders_ismi, kredi, akts, harf_notu))
-                        print(f"{ders_kodu} | {ders_ismi} | {kredi} | {akts} | {harf_notu}")
-
-
+            tum_metin += page.extract_text() + "\n"
+        
+        # Debug için PDF'nin ham çıktısını kaydet
+        with open("pdf_ham_cikti.txt", "w", encoding="utf-8") as f:
+            f.write(tum_metin)
+        
+        # Önce tüm metni temizle (CID'leri düzelt)
+        temiz_metin = cid_temizle(tum_metin)
+        
+        # Özel durum: BM401 için manuel düzeltme
+        temiz_metin = temiz_metin.replace("BM401 2.0 3.0 CB", "BM401 Bilgisayar Mühendisliği Proje Tasarımı 2.0 3.0 CB")
+        
+        # Ders kodlarını bul
+        ders_kodlari = re.finditer(
+            r"\b(AIB\d{3}|BM\d{3}|FIZ\d{3}|ING\d{3}|MAT\d{3}|TDB\d{3}|KRP\d{3}|MS\d{3}|US\d{3}|SE\d{3})\b", 
+            temiz_metin
+        )
+        
+        dersler = []
+        pozisyonlar = [match.start() for match in ders_kodlari]
+        
+        for i in range(len(pozisyonlar)):
+            baslangic = pozisyonlar[i]
+            son = pozisyonlar[i+1] if i+1 < len(pozisyonlar) else len(temiz_metin)
+            ders_bloku = temiz_metin[baslangic:son]
+            
+            # Geliştirilmiş regex pattern
+            match = re.search(
+                r"(?P<kod>\b[A-Z]{2,3}\d{3}\b)\s+"
+                r"(?P<isim>(?!\d+\.\d+)[^\n]+?)\s+"
+                r"(?P<kredi>\d+\.\d+)\s+"
+                r"(?P<akts>\d+\.\d+)\s+"
+                r"(?P<notu>YT|YZ|[A-F]{2})\b",
+                ders_bloku,
+                re.DOTALL
+            )
+            
+            if match:
+                ders_ismi = " ".join(match.group("isim").split()).strip()
+                dersler.append((
+                    match.group("kod"),
+                    ders_ismi,
+                    match.group("kredi"),
+                    match.group("akts"),
+                    match.group("notu")
+                ))
+                print(f"✔️ BAŞARILI: {match.group('kod')} | {ders_ismi}")
+            else:
+                print(f"❌ EŞLEŞMEYEN: {ders_bloku[:100]}...")
+    
     return dersler
+
+
+
 
 
 def mezuniyet_hesapla(dersler):
